@@ -45,10 +45,14 @@ router.get('/excel', async (req, res) => {
     
     var startNum = req.query.startNum;
     var endNum = req.query.endNum;
-    
+    let order = req.query.order;
+
+    order = order ? Number(order) : 0
     startNum = startNum ? startNum : 0
     endNum = endNum ? endNum : 10
 
+
+    console.log('order :::::::::::::' , order)
     startNum = Number(startNum);
     endNum = Number(endNum);
 
@@ -63,13 +67,17 @@ router.get('/excel', async (req, res) => {
 
     let sqlList = '';
 
-    sqlList += "     SELECT pr.prod_seq AS prodSeq, "
-    sqlList += "     	   pr.prod_type AS prodType, "
+    sqlList += "     SELECT pr.no AS no, "
+    sqlList += "     	    pr.prod_seq AS prodSeq, "
+    sqlList += "     	    pr.prod_type AS prodType, "
     sqlList += "            pr.writer AS writer, "
     sqlList += "            pr.content AS content, "
     sqlList += "            pr.star AS star, "
+    sqlList += "            CASE WHEN pr.use_yn = 'Y' THEN 'Y' ELSE 'N' END AS useStatus, "
     sqlList += "            DATE_FORMAT(pr.reg_date , '%Y-%m-%d') AS regDate "
     sqlList += "     FROM p_reviews pr "
+    if(order == 0)   sqlList += " ORDER BY regDate DESC "
+    if(order == 1)   sqlList += " ORDER BY regDate ASC "
     sqlList += "     LIMIT :startNum , :endNum "
           
     var reviewList = await db.sequelize.query(sqlList , {replacements : {startNum : startNum , endNum: endNum} ,type: Sequelize.QueryTypes.SELECT})
@@ -77,7 +85,8 @@ router.get('/excel', async (req, res) => {
 
     let searchParams = {
         startNum : startNum ,
-        endNum : endNum
+        endNum : endNum,
+        order
     }
 
     res.render('excel/excel' , {totalCnt : totalCnt , searchParams : searchParams , reviewList : reviewList});
@@ -87,6 +96,40 @@ router.get('/excel', async (req, res) => {
 
 
 });
+
+
+//checkYn 
+router.post('/checkExcelYn' , async (req , res) => {
+    let no = req.body.no;
+    let value = req.body.value;
+    console.log('no' , no)
+    console.log('value' , value)
+
+    if(value === 'Y'){
+        value = 'N'
+    }else{
+        value = 'Y'
+    }
+    let result = 'fail';
+    try{
+        let updateResult = await db.reviews.update(
+            {
+                useYn : value 
+            },
+            {
+                where : {
+                    no : no
+                }
+            }
+        )
+        result = 'success'
+    }catch(err){
+        console.error('Error' , err)
+    }finally{
+        res.send({result : result})
+    }
+})
+
 
 // file uploads
 router.post('/excelImport' , upload.single('file') ,  async (req , res) => {
