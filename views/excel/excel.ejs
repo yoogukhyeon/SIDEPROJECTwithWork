@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+ 
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+       <!--부트스트랩 데이트픽업  -->
+    <!-- <script type='text/javascript' src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.7.1/js/bootstrap-datepicker.min.js"></script> -->
+    <script src="../../js/jquery.bootpag.js"></script>
+    <script src="../../js/jquery.bootpag.min.js"></script>
+</head>
+<body>
+        
+<div class="container">
+    <h1>Excel</h1>
+    <div class="example">
+        <em style="font-style: normal; font-style: 18px; font-weight: bold;">Excel 개발 테스트 Excel 파일을 다운로드 받아 주세요!</em>
+        <a href="../uploads/Excel.xlsx" download>Excel file 예제 다운로드 Click</a>
+    </div>
+    <form class="row g-3" action="/excelImport" method="POST" enctype="multipart/form-data" style="display: flex; align-items: center; margin-bottom: 20px;">
+        <div class="col-auto">
+          <label for="staticEmail2" class="visually-hidden">Excel File</label>
+          <input type="file"  name="file" class="form-control-plaintext" id="file" required>
+        </div>
+        <div class="col-auto" style="margin: 10px 15px 0 0;">
+          <button type="submit" class="btn btn-primary mb-3">Confirm identity</button>
+        </div>
+
+        <div class="col-md-2" style="margin-top: 10px;">
+            <button class="btn btn-primary" onclick="excel()">엑셀 파일 다운로드</button>
+        </div>
+    </form>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th style="width: 110px;">클래스타입</th>
+                <th style="width: 110px;">클래스번호</th>
+                <th>작성자</th>
+                <th style="width: 600px;">내용</th>
+                <th style="width: 60px;">평점</th>
+                <th>작성일자</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% for( let i = 0; i < reviewList.length; i++){%>
+                <tr> 
+                    <td><%= reviewList[i].prodSeq %></td>
+                    <td><%= reviewList[i].prodType %></td>
+                    <td><%= reviewList[i].writer %></td>
+                    <td><%= reviewList[i].content %></td>
+                    <td><%= reviewList[i].star %></td>
+                    <td><%= reviewList[i].regDate %></td>
+                </tr>  
+            <%}%>
+            
+        </tbody>
+    </table>
+    <div class="card-footer">
+        <div id="page-selection" style="text-align: center;"></div>
+    </div>
+</div>
+<script>
+
+       var startNum = '<%-searchParams.startNum%>';
+       var endNum = '<%-searchParams.endNum%>';
+        console.log('startNum' , startNum)
+        console.log('endNum' , endNum)
+        $(document).ready(function (){
+            $('#page-selection').bootpag().on('page', function(event, num){
+            startNum = (num-1)*10;
+            endNum = 10;
+         
+             window.location.href= "/excel?startNum="+startNum+"&endNum="+endNum
+        });
+        
+            var pageNum = Math.floor((startNum/10)+1);
+            var totalCnt = '<%-totalCnt[0].totalCnt%>';
+            var totalPage = Math.floor((totalCnt-1)/10)+1;
+            $('#page-selection').bootpag({
+                total: totalPage,
+                page: pageNum,
+                maxVisible: 10,
+                leaps: true,
+                firstLastUse: true,
+                first: '<<',
+                last: '>>',
+                wrapClass: 'pagination justify-content-center',
+                activeClass: 'active',
+                disabledClass: 'disabled',
+                nextClass: 'page-item',
+                prevClass: 'page-item',
+                lastClass: 'page-item',
+                firstClass: 'page-item'
+            });
+        });
+
+
+        function excel(){
+        window.location.href= `/excel/reviewExcel?startNum=${startNum}&endNum=${endNum}`
+        }
+
+</script>
+</body>
+</html>
+
+
